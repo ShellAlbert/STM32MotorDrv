@@ -1,0 +1,4 @@
+adc_data_handle.c:24:6:adh_param_init	8	static
+adc_data_handle.c:32:6:adh_adc_dma_data_handle	16	static
+adc_data_handle.c:38:6:adc_upload_data_register	16	static
+adc_data_handle.c:43:6:adh_prase_adc_dam_data	24	static

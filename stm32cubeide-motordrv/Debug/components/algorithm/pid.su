@@ -1,0 +1,5 @@
+pid.c:12:6:abs_limit	16	static
+pid.c:20:13:pid_param_init	24	static
+pid.c:43:13:pid_reset	24	static
+pid.c:62:7:pid_calculate	32	static
+pid.c:84:6:pid_struct_init	40	static

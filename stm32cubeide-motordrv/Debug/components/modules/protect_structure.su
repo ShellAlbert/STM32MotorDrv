@@ -1,0 +1,4 @@
+protect_structure.c:10:9:protect_structure_register	56	static
+protect_structure.c:57:21:protect_structure_find	24	static
+protect_structure.c:85:6:protect_structure_motor_run	16	static
+protect_structure.c:93:6:stop_protect_motor	16	static

@@ -1,0 +1,9 @@
+system_cmd.c:34:6:system_cmd_task	32	static
+system_cmd.c:88:15:auto_focus	16	static
+system_cmd.c:94:15:left_motor_move	16	static
+system_cmd.c:115:15:right_motor_move	16	static
+system_cmd.c:134:15:ud_stepper_move	16	static
+system_cmd.c:154:15:lr_stepper_move	16	static
+system_cmd.c:175:15:protect_stepper_move	16	static
+system_cmd.c:192:15:set_volume	16	static
+system_cmd.c:201:15:get_distance	16	static

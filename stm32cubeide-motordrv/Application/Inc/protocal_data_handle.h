@@ -23,7 +23,7 @@ extern osMutexId uploadMutexHandle;
 
 // attribute id
 #define SIGNAL_STRENGTH        		                0x01
-#define AUTO_FOCUS					                      0x02
+#define AUTO_FOCUS					                0x02
 #define MEASURE_DISTANCE       		                0x03
 #define LEFT_MOTOR_MANUAL_FOCUS_PLUS              0x04
 #define LEFT_MOTOR_MANUAL_FOCUS_MINUS             0x05
@@ -74,6 +74,49 @@ extern osMutexId uploadMutexHandle;
 #define OPEN_PID                                  0x32
 #define PROTECT_STEPPER_MOVE                      0x33
 
+//add by zhangshaoyan 2020/3/15 begin.
+#define SYNC_HEADER_CLEAR	0x44454354 //clear frame.
+#define SYNC_HEADER_ENCRYPT	0x454E4354 //encrypt frame.
+
+enum{
+	nReg_Battery_R=0x000001,//read battery register.
+	
+	nReg_RSSI_R=0x000002,//read RSSI register.
+	
+	nReg_Distance_R=0x000003,//read Distance register.	
+	
+	nReg_LenMotorCtl_W=0x800004,//write LenMotorCtl register.
+	
+	nReg_2DBracketCtl_W=0x800005,//write 2D bracket ctrl register.
+	
+	nReg_OutVolume_R=0x000006,//read output volume register.
+	nReg_OutVolume_W=0x800006,//write output volume register.
+	
+	nReg_VideoCtl_R=0x000007,//read videoCtl register.
+	nReg_VideoCtl_W=0x800007,//write videoCtl register.
+
+	nReg_FPGA_R=0x000008,//read FPGA register.
+	nReg_FPGA_W=0x800008,//write FPGA register.
+
+	nReg_CrossXY_R=0x000009,//read CrossXY register.
+	nReg_CrossXY_W=0x800009,//write CrossXY register.
+
+	nReg_AutoFocus1_R=0x3F0000,//read AutoFocus1 register.
+	nReg_AutoFocus1_W=0xBF0000,//write AutoFocus1 register.
+};
+
+
+//finite state machine FSM for UnPack.
+typedef enum{
+	UnPack_Field_Sync=0,
+	UnPack_Field_Length,
+	UnPack_Field_Key,	
+	UnPack_Field_RegAddr,
+	UnPack_Field_RegData,
+	UnPack_Field_CRC32,
+}FSM_UnPack;
+//add by zhangshaoyan 2020/3/15 end.
+
 // frame field
 typedef enum
 {
@@ -87,6 +130,9 @@ typedef enum
 	frame_data_start    = 7,
 }frame_data_e;
 
+//协议解包状态机
+//解包主要是4个状态，前面2个是0x5A,0xA5帧头
+//然后是帧长度，最后是帧校验
 typedef enum
 {
   STEP_HEADER_5A  = 0,

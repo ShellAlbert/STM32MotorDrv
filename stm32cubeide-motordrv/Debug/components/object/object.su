@@ -1,0 +1,8 @@
+linux_list.h:71:22:__list_add	24	static
+linux_list.h:89:22:list_add	16	static
+linux_list.h:114:22:__list_del	16	static
+linux_list.h:126:22:list_del	16	static
+object.c:43:1:object_get_information	24	static
+object.c:54:9:object_init	48	static,ignoring_inline_asm
+object.c:91:10:object_find	48	static,ignoring_inline_asm
+object.c:132:6:object_detach	32	static,ignoring_inline_asm

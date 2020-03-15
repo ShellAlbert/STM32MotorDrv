@@ -1,0 +1,5 @@
+2d_bracket.c:9:9:bracket_register	104	static
+2d_bracket.c:80:11:bracket_find	24	static
+2d_bracket.c:95:6:stepper_run	24	static
+2d_bracket.c:138:6:update_stepper_positon	32	static
+2d_bracket.c:179:6:tim_rcr_uev_callback	8	static

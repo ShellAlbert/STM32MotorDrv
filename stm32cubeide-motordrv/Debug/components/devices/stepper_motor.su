@@ -1,0 +1,2 @@
+stepper_motor.c:9:9:setpper_device_register	24	static
+stepper_motor.c:26:18:setpper_device_find	24	static

@@ -1,0 +1,3 @@
+cmd.c:11:8:protocol_rcv_cmd_register	24	static
+cmd.c:26:8:protocol_rcv_cmd_unregister	24	static
+cmd.c:39:6:protocol_rcv_pack_handle	24	static

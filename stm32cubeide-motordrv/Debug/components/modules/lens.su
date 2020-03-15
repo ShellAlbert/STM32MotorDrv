@@ -1,0 +1,6 @@
+lens.c:11:9:lens_pid_register	104	static
+lens.c:69:8:lens_find	24	static
+lens.c:79:9:lens_execute	24	static
+lens.c:94:6:lens_set_left_motor_target	16	static
+lens.c:103:6:lens_set_right_motor_target	16	static
+lens.c:218:6:lens_set_motors_target_by_distance	24	static
