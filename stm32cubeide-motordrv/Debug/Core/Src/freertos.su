@@ -1,2 +1,0 @@
-freertos.c:77:6:MX_FREERTOS_Init	112	static
-freertos.c:145:13:init_task	16	static

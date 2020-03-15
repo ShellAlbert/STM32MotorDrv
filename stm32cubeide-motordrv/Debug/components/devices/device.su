@@ -1,3 +1,0 @@
-device.c:10:9:device_register	24	static
-device.c:28:9:device_unregister	16	static
-device.c:40:10:device_find	24	static

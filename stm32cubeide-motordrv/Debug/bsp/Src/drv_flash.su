@@ -1,7 +1,0 @@
-drv_flash.c:4:6:update_volume_data_to_flash	24	static
-drv_flash.c:26:10:read_half_word_from_flash	16	static
-drv_flash.c:31:10:read_word_from_flash	16	static
-drv_flash.c:40:6:easer_flash	8	static
-drv_flash.c:58:6:find_new_entry	8	static
-drv_flash.c:81:10:find_used_entry	8	static
-drv_flash.c:97:6:write_word_to_flash	32	static

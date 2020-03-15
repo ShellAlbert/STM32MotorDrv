@@ -1,8 +1,0 @@
-protocal_data_handle.c:83:10:crc32	24	static
-protocal_data_handle.c:99:6:pdh_param_init	8	static
-protocal_data_handle.c:110:10:pdh_uart_rx_data_handle	16	static
-protocal_data_handle.c:119:6:pdh_data_handler	24	static
-protocal_data_handle.c:131:6:pdh_unpack_fifo_data	32	static
-protocal_data_handle.c:244:6:pdh_data_upload	288	static
-protocal_data_handle.c:273:9:pdh_verify_sum	24	static
-protocal_data_handle.c:287:9:pdh_get_sum	24	static

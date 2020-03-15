@@ -1,5 +1,0 @@
-motor.c:12:9:motor_device_register	24	static
-motor.c:29:16:motor_device_find	24	static
-motor.c:51:9:motor_device_set_current	16	static
-motor.c:62:6:motor_device_run	16	static
-motor.c:67:6:motor_device_set_encoder	16	static

@@ -1,6 +1,0 @@
-drv_adc.c:9:6:adc1_manage_init	8	static
-drv_adc.c:15:6:adc2_manage_init	8	static
-drv_adc.c:21:6:adc3_manage_init	8	static
-drv_adc.c:32:6:right_motor_awd_trigger_callback_register	16	static
-drv_adc.c:37:6:left_motor_awd_trigger_callback_register	16	static
-drv_adc.c:53:6:HAL_ADC_LevelOutOfWindowCallback	16	static
