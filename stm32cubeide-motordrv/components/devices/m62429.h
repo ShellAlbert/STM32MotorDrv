@@ -8,7 +8,7 @@
 #ifndef DEVICES_M62429_H_
 #define DEVICES_M62429_H_
 #include "gpio.h"
-
+#include "zgblpara.h"
 #define SET_VOLUME 0x22
 
 #define CONTROL_D9D10	0x0060
@@ -18,6 +18,6 @@
 #define DAT_L HAL_GPIO_WritePin(M62429_D_GPIO_Port,M62429_D_Pin,GPIO_PIN_RESET)
 #define DAT_H HAL_GPIO_WritePin(M62429_D_GPIO_Port,M62429_D_Pin,GPIO_PIN_SET)
 
-void m62429_init(void);
+void zsy_M62429Init(void);
 int8_t m62429_control(uint8_t *volume_data,uint16_t len);
 #endif /* DEVICES_M62429_H_ */

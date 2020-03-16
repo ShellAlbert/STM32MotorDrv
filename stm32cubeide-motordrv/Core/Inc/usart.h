@@ -24,7 +24,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "zgblpara.h"
 
 /* USER CODE BEGIN Includes */
 

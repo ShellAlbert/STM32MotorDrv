@@ -5,7 +5,7 @@
  *      Author: wt
  */
 #include "charge_test.h"
-
+#include "zgblpara.h"
 extern void pdh_data_upload(uint8_t *p_frame, uint8_t len);
 
 void charge_test(void)

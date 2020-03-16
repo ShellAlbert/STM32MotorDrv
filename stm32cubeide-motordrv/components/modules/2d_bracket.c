@@ -5,7 +5,7 @@
  *      Author: Administrator
  */
 #include "2d_bracket.h"
-
+#include "zgblpara.h"
 int32_t bracket_register(struct bracket *bracket, const char *name)
 {
 	char motor_name[2][OBJECT_NAME_MAX_LEN] = {0};

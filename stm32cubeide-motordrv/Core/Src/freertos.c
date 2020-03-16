@@ -21,14 +21,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
 #include "task.h"
-#include "main.h"
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */     
 #include "drv_uart.h"
 /* USER CODE END Includes */
-
+#include "zlens_handle.h"
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
@@ -63,7 +62,8 @@ osMutexId packMutexHandle;
 
 void init_task(void const * argument);
 extern void communicate_task(void const * argument);
-extern void lens_task(void const * argument);
+//extern void lens_task(void const * argument);
+
 extern void system_cmd_task(void const * argument);
 extern void stop_protect_motor(void const * argument);
 
@@ -119,7 +119,8 @@ void MX_FREERTOS_Init(void) {
   CommunicateTaskHandle = osThreadCreate(osThread(CommunicateTask), NULL);
 
   /* definition and creation of LensTask */
-  osThreadDef(LensTask, lens_task, osPriorityRealtime, 0, 512);
+  //osThreadDef(LensTask, lens_task, osPriorityRealtime, 0, 512);
+  osThreadDef(LensTask, zsy_LensThreadLoop, osPriorityRealtime, 0, 512);
   LensTaskHandle = osThreadCreate(osThread(LensTask), NULL);
 
   /* definition and creation of CmdTask */
@@ -144,12 +145,6 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE END Header_init_task */
 __weak void init_task(void const * argument)
 {
-    
-    
-    
-    
-    
-
   /* USER CODE BEGIN init_task */
   /* Infinite loop */
   for(;;)

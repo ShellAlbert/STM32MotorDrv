@@ -1,7 +1,5 @@
----- adh_adc_dma_data_handle Matches (2 in 2 files) ----
-zadc_handle.c (Application\Src) line 36 : void adh_adc_dma_data_handle(uint8_t *buf, uint32_t len)
-zadc_handle.h (Application\Inc) line 30 : void adh_adc_dma_data_handle(uint8_t *buf, uint32_t len);
----- adh_adc_dma_data_handle Search Errors Encountered (2) ----
-The following 2 files could not be processed:
-D:\STM32MotorDrv\stm32cubeide-motordrv\Application\Src\adc_data_handle.c : File could not be opened.
-D:\STM32MotorDrv\stm32cubeide-motordrv\Application\Inc\adc_data_handle.h : File could not be opened.
+---- left_motor_awd_trigger_handle Matches (4 in 4 files) ----
+init_task.h (Application\Inc) line 15 : void left_motor_awd_trigger_handle(void);
+lens_task.c (Application\Src) line 25 : void left_motor_awd_trigger_handle(void)
+lens_task.h (Application\Inc) line 17 : void left_motor_awd_trigger_handle(void);
+HAL_ADC_LevelOutOfWindowCallback in zadc_handle.c (Application\Src) : 			left_motor_awd_trigger_handle();

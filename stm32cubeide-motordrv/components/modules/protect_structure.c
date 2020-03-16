@@ -6,7 +6,7 @@
  */
 #include "protect_structure.h"
 #include "cmsis_os.h"
-
+#include "zgblpara.h"
 int32_t protect_structure_register(protect_structure_t protect_structure, const char *name)
 {
 	char motor_name[OBJECT_NAME_MAX_LEN] = {0};

@@ -41,6 +41,7 @@ void zsy_ModBusInit(void)
 	g_UnPackHelper.encryptFlag = 0;
 
 	//initial USART1.
+	MX_USART1_UART_Init();
 	usart1_manage_init();
 	//setup USART1 Rx CallBack.
 	usart_rx_callback_register(&usart1_manage_obj, zsy_ModBusRxCallBack);

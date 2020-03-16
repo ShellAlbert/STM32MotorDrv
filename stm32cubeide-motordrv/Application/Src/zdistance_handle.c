@@ -34,6 +34,7 @@ void zsy_DistanceInit(void)
 	cj_unpack_obj.unpack_step = STEP_CEJU_HRADER_FIRST;
 
 	//initial USART3.
+	MX_USART3_UART_Init();
 	usart3_manage_init();
 	//setup USART3 Rx CallBack.
 	usart_rx_callback_register(&usart3_manage_obj, zsy_DistanceRxCallBack);

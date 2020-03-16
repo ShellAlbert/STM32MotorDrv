@@ -28,7 +28,7 @@ uint16_t Volume_H[] = {	/*D2~D6 */
 								0x0010,0x0000};
 							/*   -80db, -84db	*/
 
-void m62429_init(void)
+void zsy_M62429Init(void)
 {
 	uint8_t init_vol = 0;
 	m62429_control(&init_vol,1);

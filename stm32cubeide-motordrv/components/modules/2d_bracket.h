@@ -4,6 +4,8 @@
  *  Created on: Aug 4, 2019
  *      Author: Administrator
  */
+#ifndef _2D_BRACKET_H__
+#define _2D_BRACKET_H__
 #include "stepper_motor.h"
 #include "user_errno.h"
 //struct limit_switch
@@ -25,4 +27,4 @@ bracket_t bracket_find(const char *name);
 void stepper_run(stepper_device_t stepper_device, int16_t setp);
 void update_stepper_positon(uint16_t gpio_Pin);
 void tim_rcr_uev_callback(void);
-
+#endif //_2D_BRACKET_H__
