@@ -58,8 +58,7 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define SAMPLE_CHANNEL_NUM 3
-#define SAMPLE_PER_CHANNEL 50
+
 #define Laser_Fiber_En_Pin GPIO_PIN_2
 #define Laser_Fiber_En_GPIO_Port GPIOE
 #define AOM1_En_Pin GPIO_PIN_3

@@ -4,13 +4,13 @@
  *  Created on: Jul 26, 2019
  *      Author: wt
  */
-#include <protocal_data_handle.h>
-#include "ceju_data_handle.h"
+#include <zadc_handle.h>
+#include <zdistance_handle.h>
+#include <zmodbus_rtu_handle.h>
 #include "communicate.h"
 #include "cmsis_os.h"
 #include "drv_uart.h"
 #include "cmd.h"
-#include "adc_data_handle.h"
 
 void communicate_task(void const * argument)
 {

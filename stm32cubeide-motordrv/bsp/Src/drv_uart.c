@@ -51,17 +51,6 @@ void usart_rx_callback_register(usart_manage_obj_t *m_obj, usart_call_back fun)
   return;
 }
 
-void usart1_rx_callback_register(usart_call_back fun)
-{
-  usart_rx_callback_register(&usart1_manage_obj, fun);
-  return;
-}
-
-void usart3_rx_callback_register(usart_call_back fun)
-{
-  usart_rx_callback_register(&usart3_manage_obj, fun);
-  return;
-}
 
 //void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 //{

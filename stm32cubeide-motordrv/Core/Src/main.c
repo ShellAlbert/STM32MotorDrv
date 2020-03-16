@@ -24,6 +24,7 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include <zdev_init.h>
 #include "main.h"
 #include "cmsis_os.h"
 #include "adc.h"
@@ -34,7 +35,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "init.h"
 #include "2d_bracket.h"
 /* USER CODE END Includes */
 

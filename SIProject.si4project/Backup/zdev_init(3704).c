@@ -1,16 +1,16 @@
 /*
- * init.c
- *
- *  Created on: Aug 4, 2019
- *      Author: Administrator
+ * filename:zdev_init.c
+ * versin:0.1.0
+ * author:1811543668@qq.com
+ * date: 2020/3/16
  */
-#include <ceju_data_handle.h>
-#include "init.h"
+
+#include <zadc_handle.h>
+#include <zdev_init.h>
+#include <zdistance_handle.h>
+#include <zmodbus_rtu_handle.h>
 #include "lens_task.h"
-#include "drv_adc.h"
 #include "drv_uart.h"
-#include "protocal_data_handle.h"
-#include "adc_data_handle.h"
 #include "2d_bracket.h"
 #include "protect_structure.h"
 #include "m62429.h"
@@ -21,8 +21,8 @@ struct protect_structure protect_structure;
 
 void device_init(void)
 {
-  adh_param_init();
-  pdh_param_init();
+  zsy_ADCInit();
+  zsy_ModBusInit();
   cj_param_init();
   usart1_manage_init();
   usart3_manage_init();

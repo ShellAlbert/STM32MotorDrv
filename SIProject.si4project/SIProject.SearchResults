@@ -1,0 +1,9 @@
+---- adc1_conv_buff Matches (5 in 3 files) ----
+adc1_manage_init in drv_adc.c (bsp\Src) : 	HAL_ADC_Start_DMA(&hadc1,(uint32_t *)adc1_conv_buff,ADC1_CHANNEL_NUM*ADC1_CHANNEL_SAMPLES);
+drv_adc.c (bsp\Src) line 48 : //			adc1_conv_cplt_call_back_f((uint8_t *)adc1_conv_buff,SAMPLE_PER_CHANNEL*SAMPLE_CHANNEL_NUM*2);
+adh_adc_dma_data_handle in zadc_handle.c (Application\Src) : 	memcpy(adc1_conv_buff,buf,len);
+adh_prase_adc_dam_data in zadc_handle.c (Application\Src) : 			sum += adc1_conv_buff[i][j];
+zgblpara.h (Application\Inc) line 12 : extern uint16_t adc1_conv_buff[ADC1_CHANNEL_SAMPLES][ADC1_CHANNEL_NUM];
+---- adc1_conv_buff Search Errors Encountered (1) ----
+The following 1 files could not be processed:
+D:\STM32MotorDrv\stm32cubeide-motordrv\Application\Src\adc_data_handle.c : File could not be opened.

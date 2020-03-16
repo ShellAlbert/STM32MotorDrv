@@ -5,12 +5,12 @@
  *      Author: wt
  */
 #include <drv_flash.h>
+#include <zadc_handle.h>
 #include "init_task.h"
 #include "2d_bracket.h"
 #include "gpio.h"
 #include "drv_uart.h"
 #include "charge_test.h"
-#include "adc_data_handle.h"
 
 void init_task(void const * argument)
 {

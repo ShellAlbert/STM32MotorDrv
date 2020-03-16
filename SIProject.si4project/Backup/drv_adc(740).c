@@ -1,6 +1,6 @@
 #include "drv_adc.h"
-
-uint16_t adc1_conv_buff[SAMPLE_PER_CHANNEL][SAMPLE_CHANNEL_NUM] ={0};
+#include "zgblpara.h"
+uint16_t adc1_conv_buff[ADC1_CHANNEL_SAMPLES][ADC1_CHANNEL_NUM];
 
 //static adc_conv_cplt_call_back adc1_conv_cplt_call_back_f = NULL;
 static adc_awd_trigger_call_back right_motor_awd_trigger_call_back_f = NULL;
@@ -9,7 +9,7 @@ static adc_awd_trigger_call_back left_motor_awd_trigger_call_back_f = NULL;
 void adc1_manage_init(void)
 {
 	//  HAL_ADCEx_Calibration_Start(&hadc1);
-	HAL_ADC_Start_DMA(&hadc1,(uint32_t *)adc1_conv_buff,SAMPLE_PER_CHANNEL*SAMPLE_CHANNEL_NUM);
+	HAL_ADC_Start_DMA(&hadc1,(uint32_t *)adc1_conv_buff,ADC1_CHANNEL_NUM*ADC1_CHANNEL_SAMPLES);
 }
 
 void adc2_manage_init(void)

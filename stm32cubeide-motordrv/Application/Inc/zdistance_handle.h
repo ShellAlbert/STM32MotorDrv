@@ -1,13 +1,14 @@
 /*
- * ceju_task.h
- *
- *  Created on: Jul 29, 2019
- *      Author: wt
+ * filename:zdistance_handle.h
+ * versin:0.1.0
+ * author:1811543668@qq.com
+ * date: 2020/3/16
  */
 
-#ifndef INC_CEJU_H_
-#define INC_CEJU_H_
-#include <protocal_data_handle.h>
+
+#ifndef _ZDISTANCE_HANDLE_H__
+#define _ZDISTANCE_HANDLE_H__
+#include <zmodbus_rtu_handle.h>
 #include "stm32f1xx_hal.h"
 #include "lens.h"
 
@@ -46,12 +47,12 @@ typedef struct
 } unpack_ceju_data_t;
 
 
-void cj_param_init(void);
-uint32_t cj_uart_rx_data_handle(uint8_t *data, uint32_t len);
+void zsy_DistanceInit(void);
+uint32_t zsy_DistanceRxCallBack(uint8_t *data, uint32_t len);
 void ceju_upload_data_register(ceju_upload_handler_f upload_f);
 void cj_unpack_fifo_data(void);
 void start_distance_measure(void);
 void stop_distance_measure(void);
 void cj_get_distance(void);
 
-#endif /* INC_CEJU_H_ */
+#endif /* _ZDISTANCE_HANDLE_H__ */

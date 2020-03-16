@@ -68,6 +68,9 @@ typedef enum
   ERR_NORAML = 0
 } UART_Err;
 
+extern usart_manage_obj_t usart1_manage_obj;
+extern usart_manage_obj_t usart3_manage_obj;
+
 void usart3_manage_init(void);
 void usart1_manage_init(void);
 void usart_rx_callback_register(usart_manage_obj_t *m_obj, usart_call_back fun);
@@ -78,6 +81,4 @@ void usart3_transmit(uint8_t *buff, uint16_t len);
 void usart1_idle_callback(void);
 void usart3_idle_callback(void);
 uint32_t uart1_rx_data_handle(uint8_t *buff, uint32_t len);
-void usart1_rx_callback_register(usart_call_back fun);
-void usart3_rx_callback_register(usart_call_back fun);
 #endif // __DRV_UART_H__
