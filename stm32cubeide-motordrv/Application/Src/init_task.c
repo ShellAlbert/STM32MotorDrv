@@ -65,7 +65,7 @@ void init_task(void const * argument)
 			write_word_to_flash(writer);
 		}
 
-		adh_prase_adc_dam_data();
+		zsy_ParseADC1DMAData();
 
 		charge_test();
 

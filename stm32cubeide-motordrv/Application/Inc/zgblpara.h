@@ -12,6 +12,8 @@
 extern uint16_t g_ADC1DMABuffer[ADC1_CHANNEL_SAMPLES][ADC1_CHANNEL_NUM];
 extern uint16_t g_ADC1AverageValue[ADC1_CHANNEL_NUM];
 
+//the battery voltage measured by ADC1-CH10.
+extern uint32_t g_BatteryVoltage;
 
 //the distance value measured by LaserDistanceMeasure module.
 extern uint32_t g_LaserDistance;

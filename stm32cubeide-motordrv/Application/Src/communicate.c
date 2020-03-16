@@ -33,7 +33,7 @@ void communicate_task(void const * argument)
 
 			if (event.value.signals & RECV_ADC_DMA_SIGNAL)
 			{
-//				adh_prase_adc_dam_data();
+				zsy_ParseADC1DMAData();
 			}
 		}
   }

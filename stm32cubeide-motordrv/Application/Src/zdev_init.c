@@ -53,9 +53,5 @@ void device_init(void)
   bracket_register(&bracket,"bracket");
   protect_structure_register(&protect_structure,"protect_structure");
   m62429_init();
-  adc_upload_data_register(pdh_data_upload);
-  right_motor_awd_trigger_callback_register(right_motor_awd_trigger_handle);
-  left_motor_awd_trigger_callback_register(left_motor_awd_trigger_handle);
-
 //  stop_distance_measure();
 }

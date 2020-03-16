@@ -8,7 +8,8 @@
 uint16_t g_ADC1DMABuffer[ADC1_CHANNEL_SAMPLES][ADC1_CHANNEL_NUM];
 uint16_t g_ADC1AverageValue[ADC1_CHANNEL_NUM];
 
-
+//the battery voltage measured by ADC1-CH10.
+uint32_t g_BatteryVoltage=0;
 
 //the distance value measured by LaserDistanceMeasure module.
 uint32_t		g_LaserDistance = 0;

@@ -14,8 +14,6 @@
 #include "usart.h"
 #include "zgblpara.h"
 
-static adc_upload_handler_t adc_protocol_upload;
-
 uint8_t fiber_H[9]={0x53,0x4F,0x50,0x3D,0x32,0x37,0x30,0x0A,0x0D};
 uint8_t fiber_L[9]={0x53,0x4F,0x50,0x3D,0x31,0x37,0x30,0x0A,0x0D};
 uint8_t fiber_flg=0;
@@ -31,8 +29,6 @@ void zsy_ADCInit(void)
 
 	//start ADC3 with IT(Interrupt).
 	HAL_ADC_Start(&hadc3);
-	
-//	adc1_conv_cplt_callback_register(adh_adc_dma_data_handle);
 }
 
 void adh_adc_dma_data_handle(uint8_t *buf, uint32_t len)
@@ -41,16 +37,11 @@ void adh_adc_dma_data_handle(uint8_t *buf, uint32_t len)
 	osSignalSet(CommunicateTaskHandle, RECV_ADC_DMA_SIGNAL);
 }
 
-void adc_upload_data_register(adc_upload_handler_t upload_t)
-{
-	adc_protocol_upload = upload_t;
-}
-
-void adh_prase_adc_dam_data(void)
+void zsy_ParseADC1DMAData(void)
 {
 	uint32_t sum = 0;
 	uint8_t i,j = 0;
-	upload_attr_t upload_attr;
+	//calculate each channel's average value.
 	for( j=0;j<ADC1_CHANNEL_NUM;j++ )
 	{
 		for( i=0;i<ADC1_CHANNEL_SAMPLES;i++)
@@ -60,6 +51,8 @@ void adh_prase_adc_dam_data(void)
 		g_ADC1AverageValue[j] = sum/ADC1_CHANNEL_SAMPLES;
 		sum = 0;
 	}
+
+	//auto setup up optical amplifier according the ADC value.
 	if((g_ADC1AverageValue[0]>3000)&&(fiber_flg==0))
 	{
 		  HAL_UART_Transmit(&huart4,&fiber_L[0],9,1);
@@ -71,71 +64,30 @@ void adh_prase_adc_dam_data(void)
 		  fiber_flg=0;
 	}
 
-//	upload_attr = pack_upload_data(BATTERY_AND_RSSI_VOLTAGE,(uint8_t *)&average_value[NTC_ADC1_CH4],2);
-//	if(adc_protocol_upload != NULL)
-//	{
-//		adc_protocol_upload(upload_attr.pdata,upload_attr.len);
-//	}
-	// 字节序与老机器相反
-	upload_attr = pack_upload_data(BATTERY_AND_RSSI_VOLTAGE,(uint8_t *)&g_ADC1AverageValue[Battery_Voltage_ADC1_CH10],4);
-	if(adc_protocol_upload != NULL)
-	{
-		adc_protocol_upload(upload_attr.pdata,upload_attr.len);
-	}
+	//save battery voltage to global variable.
+	g_BatteryVoltage=g_ADC1AverageValue[Battery_Voltage_ADC1_CH10];
 }
 
-//static adc_conv_cplt_call_back adc1_conv_cplt_call_back_f = NULL;
-static adc_awd_trigger_call_back right_motor_awd_trigger_call_back_f = NULL;
-static adc_awd_trigger_call_back left_motor_awd_trigger_call_back_f = NULL;
-
-//void adc1_conv_cplt_callback_register(adc_conv_cplt_call_back fun)
-//{
-//	adc1_conv_cplt_call_back_f = fun;
-//}
-
-void right_motor_awd_trigger_callback_register(adc_awd_trigger_call_back fun)
-{
-	right_motor_awd_trigger_call_back_f = fun;
-}
-
-void left_motor_awd_trigger_callback_register(adc_awd_trigger_call_back fun)
-{
-	left_motor_awd_trigger_call_back_f = fun;
-}
-
-//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-//{
-//	if(hadc->Instance == ADC1)
-//	{
-//		if(adc1_conv_cplt_call_back_f != NULL)
-//		{
-//			adc1_conv_cplt_call_back_f((uint8_t *)adc1_conv_buff,SAMPLE_PER_CHANNEL*SAMPLE_CHANNEL_NUM*2);
-//		}
-//	}
-//}
-
+//STM32 AWD(analog watchdog) monitor the voltage level between [min,max].
+//if it overflow then trigger interrupt,then call back this function.
+//I used it to minitor two DC Motors current.
+//when Motor current reach threshold,it means it should be stop,it reach the limited position.
 void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef* hadc)
 {
-
+	//ADC2-CH8: Right Motor Current Analog WatchDog.
+	//ADC3-CH3: Left Motor Current Analog WatchDog.
 	if(hadc->Instance == ADC2)
 	{
 		if (__HAL_ADC_GET_FLAG(hadc, ADC_FLAG_AWD) != RESET)
 		{
-			if(right_motor_awd_trigger_call_back_f != NULL)
-			{
-				right_motor_awd_trigger_call_back_f();
-			}
-
+				right_motor_awd_trigger_handle();
 		}
 	}
 	else if(hadc->Instance == ADC3)
 	{
 		if (__HAL_ADC_GET_FLAG(hadc, ADC_FLAG_AWD) != RESET)
 		{
-			if(left_motor_awd_trigger_call_back_f != NULL)
-			{
-				left_motor_awd_trigger_call_back_f();
-			}
+			left_motor_awd_trigger_handle();
 		}
 	}
 }

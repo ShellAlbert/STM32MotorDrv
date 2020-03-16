@@ -25,19 +25,11 @@ typedef enum
 }voltage_e;
 
 void zsy_ADCInit(void);
-void adc_upload_data_register(adc_upload_handler_t upload_t);
-void adh_prase_adc_dam_data(void);
+void zsy_ParseADC1DMAData(void);
 void adh_adc_dma_data_handle(uint8_t *buf, uint32_t len);
 
 #include "adc.h"
 
-typedef void (*adc_conv_cplt_call_back)(uint8_t *buf, uint32_t len);
-typedef void (*adc_awd_trigger_call_back)(void);
-
-
-void adc1_conv_cplt_callback_register(adc_conv_cplt_call_back fun);
-void right_motor_awd_trigger_callback_register(adc_awd_trigger_call_back fun);
-void left_motor_awd_trigger_callback_register(adc_awd_trigger_call_back fun);
 void get_adc_value(void);
 
 

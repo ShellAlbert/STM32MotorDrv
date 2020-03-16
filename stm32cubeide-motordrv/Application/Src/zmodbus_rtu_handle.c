@@ -371,7 +371,7 @@ void zsy_ModBusParseFrame(ModBus_UnPack_Helper * frm)
 		switch (frm->regAddrField)
 			{
 			case nReg_Battery_R:
-				zsy_ModBusTxOneRegister(nReg_Battery_R, 0);
+				zsy_ModBusTxOneRegister(nReg_Battery_R, g_BatteryVoltage);
 				break;
 
 			case nReg_RSSI_R:
