@@ -18,6 +18,7 @@
 #define DAT_L HAL_GPIO_WritePin(M62429_D_GPIO_Port,M62429_D_Pin,GPIO_PIN_RESET)
 #define DAT_H HAL_GPIO_WritePin(M62429_D_GPIO_Port,M62429_D_Pin,GPIO_PIN_SET)
 
+extern uint8_t g_M62429Volume;
 void zsy_M62429Init(void);
-int8_t m62429_control(uint8_t *volume_data,uint16_t len);
+int8_t zsy_M62429Ctrl(uint8_t *volume_data,uint16_t len);
 #endif /* DEVICES_M62429_H_ */

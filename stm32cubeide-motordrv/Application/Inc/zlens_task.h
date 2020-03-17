@@ -33,11 +33,11 @@ struct motorDevice
 	uint8_t 		goto_zp_flag;
 	uint8_t 		nArrivedZPFlag;
 	uint16_t		zero_point;
-	uint16_t		target;
+	uint16_t		targetEncoder;
 	TIM_HandleTypeDef * encoder_tim_handle;
 	TIM_HandleTypeDef * pwm_tim_handle;
 	uint32_t		pwm_channel;
-	int16_t 		current;
+	int16_t 		currentEncoder;
 };
 
 
@@ -55,7 +55,7 @@ struct lensDevice
 
 extern struct lensDevice lensDev;
 extern void zsy_LensInit();
-extern void zsy_LensThreadLoop(void const * argument);
+extern void zsy_LensTaskLoop(void const * argument);
 extern float zsy_PIDCalculate(struct pidDevice *pidDev, float getV, float setV);
 extern void zsy_LftMotorGotPeakTorqueCurrentCallback(void);
 extern void zsy_RhtMotorGotPeakTorqueCurrentCallback(void);

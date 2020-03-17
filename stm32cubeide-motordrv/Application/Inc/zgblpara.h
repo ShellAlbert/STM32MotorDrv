@@ -14,6 +14,8 @@ extern uint16_t g_ADC1AverageValue[ADC1_CHANNEL_NUM];
 
 //the battery voltage measured by ADC1-CH10.
 extern uint32_t g_BatteryVoltage;
+//the RSSI measured by ADC1-CH12.
+extern uint32_t g_RSSI;
 
 //the distance value measured by LaserDistanceMeasure module.
 extern uint32_t g_LaserDistance;
@@ -108,6 +110,13 @@ extern uint32_t g_CRC32Calculate(uint8_t* s, int len);
 #define M2_RS422_B_GPIO_Port GPIOB
 #define M2_RS422_A_Pin GPIO_PIN_5
 #define M2_RS422_A_GPIO_Port GPIOB
+
+
+//motor encoder range.
+//because STM32's Timer is 16-bit.
+//so 2^16=65536.
+#define MOTOR_ENCODER_MIN 500
+#define MOTOR_ENCODER_MAX 65535//65000
 
 #endif
 

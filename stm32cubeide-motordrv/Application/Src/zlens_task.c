@@ -1,5 +1,5 @@
 
-#include <zlens_handle.h>
+#include <zlens_task.h>
 #include "tim.h"
 #include "cmsis_os.h"
 extern osThreadId LensTaskHandle;
@@ -15,7 +15,7 @@ void zsy_LensInit()
 	lensDev.lftMotor.pwm_tim_handle = &htim1;
 	lensDev.lftMotor.pwm_channel = TIM_CHANNEL_2;
 	lensDev.lftMotor.encoder_tim_handle = &htim3;
-	lensDev.lftMotor.goto_zp_flag = 1;
+	lensDev.lftMotor.goto_zp_flag = 1;//GotoZeroPointFlag标志位置位
 	lensDev.pidLft.maxOut = 500;
 	lensDev.pidLft.inteLimit = 0;
 	lensDev.pidLft.inputMaxErr = 0;
@@ -30,7 +30,7 @@ void zsy_LensInit()
 	lensDev.rhtMotor.pwm_tim_handle = &htim1;
 	lensDev.rhtMotor.pwm_channel = TIM_CHANNEL_1;
 	lensDev.rhtMotor.encoder_tim_handle = &htim5;
-	lensDev.rhtMotor.goto_zp_flag = 1;
+	lensDev.rhtMotor.goto_zp_flag = 1;//GotoZeroPointFlag标志位置位
 	lensDev.pidRht.maxOut = 500;
 	lensDev.pidRht.inteLimit = 0;
 	lensDev.pidRht.inputMaxErr = 0;
@@ -38,15 +38,15 @@ void zsy_LensInit()
 	lensDev.pidRht.kI	= 0;
 	lensDev.pidRht.kD	= 0;
 
-	//
+	//上电时自动对焦是关闭的,只能通过APP指令触发.
 	lensDev.autoFocusFlag = 0;
 
 
 	//TIM1-CH1/CH1N: DC Motor1 PWM Out+/Out- (Left Lens).
 	//TIM1-CH2/CH2N: DC Motor2 PWM Out+/Out- (Right Lens).
 	//TIM1-CH3/CH3N: DC Motor3 PWM Out+/Out- (Tamper).
-	//上电即启动PWM,通过ADC堵转电流停止。
-	//用于上电时电机复位，寻找零点。
+	//上电即启动PWM,通过ADC堵转电流停止,设定机械零点/逻辑零点.
+	//用于上电时电机复位,寻找零点.
 	MX_TIM1_Init();
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
@@ -69,7 +69,7 @@ void zsy_LensInit()
 }
 
 
-void zsy_LensThreadLoop(void const * argument)
+void zsy_LensTaskLoop(void const * argument)
 {
 	uint32_t		period = osKernelSysTick();
 
@@ -80,14 +80,14 @@ void zsy_LensThreadLoop(void const * argument)
 
 		//left motor.
 		currentValue		= __HAL_TIM_GET_COUNTER(&htim3);
-		fMotorOut			= zsy_PIDCalculate(&lensDev.pidLft, currentValue, lensDev.lftMotor.target);
-		lensDev.lftMotor.current = fMotorOut;
+		fMotorOut			= zsy_PIDCalculate(&lensDev.pidLft, currentValue, lensDev.lftMotor.targetEncoder);
+		lensDev.lftMotor.currentEncoder = fMotorOut;
 		__HAL_TIM_SET_COMPARE(lensDev.lftMotor.pwm_tim_handle, lensDev.lftMotor.pwm_channel, 500 - fMotorOut);
 
 		//right motor.
 		currentValue		= __HAL_TIM_GET_COUNTER(&htim5);
-		fMotorOut			= zsy_PIDCalculate(&lensDev.pidRht, currentValue, lensDev.rhtMotor.target);
-		lensDev.rhtMotor.current = fMotorOut;
+		fMotorOut			= zsy_PIDCalculate(&lensDev.pidRht, currentValue, lensDev.rhtMotor.targetEncoder);
+		lensDev.rhtMotor.currentEncoder = fMotorOut;
 		__HAL_TIM_SET_COMPARE(lensDev.rhtMotor.pwm_tim_handle, lensDev.rhtMotor.pwm_channel, 500 - fMotorOut);
 
 		//schedule after 5ms.
@@ -142,7 +142,7 @@ float zsy_PIDCalculate(struct pidDevice * pidDev, float getV, float setV)
 
 void zsy_LftMotorGotPeakTorqueCurrentCallback(void)
 {
-	//左电机堵转电流引发模拟看门狗中断，当发生10000次时可以认为100%到达零点了
+	//左电机堵转电流引发模拟看门狗中断，当发生10000次时可以认为100%到达机械零点了
 	static uint16_t nGotPeakTimes = 0;
 
 	if (lensDev.lftMotor.goto_zp_flag)
@@ -156,8 +156,8 @@ void zsy_LftMotorGotPeakTorqueCurrentCallback(void)
 			//到达机械零点后，再向后转500个单位，作为逻辑零点
 			__HAL_TIM_SET_COMPARE(lensDev.lftMotor.pwm_tim_handle, lensDev.lftMotor.pwm_channel, 500);
 
-			//只有左右电机都到达零点了，说明逻辑零点都找到了，
-			//然后才唤醒LensThread线程
+			//只有左右电机都到达机械零点了，说明逻辑零点都找到了，
+			//然后才唤醒LensThread线程,该线程上电创建时是挂起的,只有找到零点后才唤醒.
 			if (lensDev.lftMotor.nArrivedZPFlag && lensDev.rhtMotor.nArrivedZPFlag)
 				{
 				lensDev.lftMotor.nArrivedZPFlag = 0;
@@ -201,11 +201,11 @@ void zsy_LensThreadResume(void)
 {
 	if (!lensDev.autoFocusFlag)
 		{
-		lensDev.lftMotor.target = LFT_MOTOR_ZEROPOINT_ENCODER_VALUE;
-		lensDev.rhtMotor.target = RHT_MOTOR_ZEROPOINT_ENCODER_VALUE;
+		lensDev.lftMotor.targetEncoder = LFT_MOTOR_ZEROPOINT_ENCODER_VALUE;
+		lensDev.rhtMotor.targetEncoder = RHT_MOTOR_ZEROPOINT_ENCODER_VALUE;
 		}
 
-	//reset encoder value.
+	//reset encoder value to 100.
 	__HAL_TIM_SET_COUNTER(lensDev.lftMotor.encoder_tim_handle, 100);
 	__HAL_TIM_SET_COUNTER(lensDev.rhtMotor.encoder_tim_handle, 100);
 	osThreadResume(LensTaskHandle);

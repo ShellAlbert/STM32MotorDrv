@@ -1,18 +1,22 @@
+
+
 /*
  * filename:modbus_rtu_handle.h
  * versin:0.1.0
  * author:1811543668@qq.com
  * date: 2020/3/16
  */
-
 //PDH:全称是protocol data handle,表示协议数据处理器
+#include <zdataprocess_task.h>
+#include <zlens_task.h>
 #include <zmodbus_rtu_handle.h>
+#include <zsteppermotor_handle.h>
+#include <m62429.h>
 #include "stdio.h"
 #include "drv_uart.h"
 #include "fifo.h"
 #include "cmd.h"
 #include "cmsis_os.h"
-#include "communicate.h"
 #include "zgblpara.h"
 #if 1
 static unpack_data_t dh_unpack_obj;
@@ -31,6 +35,8 @@ static fifo_s_t g_ModBusRxFIFO;
 
 //an container object to help unpack plain data.
 static ModBus_UnPack_Helper g_UnPackHelper;
+extern osThreadId DataProcessTaskHandle;
+
 
 void zsy_ModBusInit(void)
 {
@@ -43,25 +49,24 @@ void zsy_ModBusInit(void)
 	//initial USART1.
 	MX_USART1_UART_Init();
 	usart1_manage_init();
+
 	//setup USART1 Rx CallBack.
 	usart_rx_callback_register(&usart1_manage_obj, zsy_ModBusRxCallBack);
 }
+
+
 uint32_t zsy_ModBusRxCallBack(uint8_t * data, uint32_t len)
 {
 	//copy data to ModBusRxFIFO.
 	fifo_s_puts(&g_ModBusRxFIFO, (char *) data, len);
 
-	//send signal to CommunicateTask with NotificateValue.
-	osSignalSet(CommunicateTaskHandle, RECV_PROTOCOL_SIGNAL);
+	//send signal to DataProcessTask with NotificateValue.
+	osSignalSet(DataProcessTaskHandle, OS_SIGNAL_MODBUS_RTU);
 	return 0;
 }
 
+
 //add by zhangshaoyan 2020/3/15 end.
-
-
-
-
-
 void pdh_data_handler(uint8_t * p_frame, uint8_t len)
 {
 	static attr_pack_t pdata;
@@ -77,14 +82,8 @@ void pdh_data_handler(uint8_t * p_frame, uint8_t len)
 
 
 //try to read one complete frame from ModBusRxFIFO byte by byte.
-void pdh_unpack_fifo_data(void)
+void zsy_ModBusParseFIFOData(void)
 {
-	uint8_t 		byte = 0;
-	unpack_data_t * p_obj = &dh_unpack_obj;
-
-
-
-	//add by zhangshaoyan 2020/3/15 begin.
 	uint32_t		crc32_buffer[32];
 	uint32_t		crc32_buffer_len = 0;
 	uint32_t		i, j;
@@ -193,7 +192,7 @@ void pdh_unpack_fifo_data(void)
 					g_UnPackHelper.fsm	= UnPack_Field_Sync;
 					crc32_buffer_len	= 0;
 
-					if (uRxInt32 == g_CRC32Calculate((uint8_t*)crc32_buffer, crc32_buffer_len))
+					if (uRxInt32 == g_CRC32Calculate((uint8_t *) crc32_buffer, crc32_buffer_len))
 						{
 						zsy_ModBusParseFrame(&g_UnPackHelper);
 						}
@@ -207,88 +206,6 @@ void pdh_unpack_fifo_data(void)
 			default:
 					{
 					g_UnPackHelper.fsm	= UnPack_Field_Sync;
-					}
-				break;
-			}
-		}
-
-	//add by zhangshaoyan 2020/3/15 end.
-	while (fifo_s_used(p_obj->data_fifo))
-		{
-		byte				= fifo_s_get(p_obj->data_fifo);
-
-		switch (p_obj->unpack_step)
-			{
-			case STEP_HEADER_5A:
-					{
-					if (byte == DH_PROTOCOL_HEADER_5A)
-						{
-						p_obj->unpack_step	= STEP_HEADER_A5;
-						p_obj->protocol_packet[p_obj->index++] = byte;
-						}
-					else 
-						{
-						p_obj->index		= 0;
-						}
-					}
-				break;
-
-			case STEP_HEADER_A5:
-					{
-					if (byte == DH_PROTOCOL_HEADER_A5)
-						{
-						p_obj->unpack_step	= STEP_LENGTH;
-						p_obj->protocol_packet[p_obj->index++] = byte;
-						}
-					else 
-						{
-						p_obj->index		= 0;
-						}
-					}
-				break;
-
-			case STEP_LENGTH:
-					{
-					p_obj->frame_len	= byte;
-					p_obj->protocol_packet[p_obj->index++] = byte;
-
-					if ((p_obj->frame_len > (PROTOCOL_FIXED_LENGTH)) &&
-						 (p_obj->frame_len < (DH_PROTOCOL_FRAME_MAX_SIZE)))
-						{
-						p_obj->unpack_step	= STEP_FRAME_SUM;
-						}
-					else 
-						{
-						p_obj->unpack_step	= STEP_HEADER_5A;
-						p_obj->index		= 0;
-						}
-					}
-				break;
-
-			case STEP_FRAME_SUM:
-					{
-					if (p_obj->index < (p_obj->frame_len))
-						{
-						p_obj->protocol_packet[p_obj->index++] = byte;
-						}
-
-					if (p_obj->index >= (p_obj->frame_len))
-						{
-						p_obj->unpack_step	= STEP_HEADER_5A;
-						p_obj->index		= 0;
-
-						if (pdh_verify_sum(p_obj->protocol_packet, p_obj->frame_len))
-							{
-							pdh_data_handler(p_obj->protocol_packet, p_obj->frame_len);
-							}
-						}
-					}
-				break;
-
-			default:
-					{
-					p_obj->unpack_step	= STEP_HEADER_5A;
-					p_obj->index		= 0;
 					}
 				break;
 			}
@@ -372,28 +289,120 @@ void zsy_ModBusParseFrame(ModBus_UnPack_Helper * frm)
 		switch (frm->regAddrField)
 			{
 			case nReg_Battery_R:
+				zsy_ParseADC1DMAData();
 				zsy_ModBusTxOneRegister(nReg_Battery_R, g_BatteryVoltage);
 				break;
 
 			case nReg_RSSI_R:
-				zsy_ModBusTxOneRegister(nReg_RSSI_R, 0);
+				zsy_ParseADC1DMAData();
+				zsy_ModBusTxOneRegister(nReg_RSSI_R, g_RSSI);
 				break;
 
 			case nReg_Distance_R:
-					zsy_ModBusTxOneRegister(nReg_Distance_R, g_LaserDistance);
+				//1.start distance measurement.
+				zsy_DistanceMeasureStart();
+
+				//2.distance will be uploaded after RxData Parse finish.
 				break;
 
 			case nReg_LenMotorCtl_W:
+					{
+					uint8_t 		uWhichMotor = (frm->regDataField[0] &0xFF000000) >> 24;
+					uint8_t 		uMotorAction = (frm->regDataField[0] &0x00FF0000) >> 16;
+
+					//电机单次动作增量(以编码器数值为准，这里忽略协议数值，强制设置为500)
+					//uint16_t		uMotorIncrease = (frm->regDataField[0] &0x0000FFFF) >> 0;
+					uint16_t		uMotorIncrease = 500;
+
+					if (uWhichMotor == 0x01) //左电机
+						{
+						if (uMotorAction == 0x01) //顺时针
+							{
+							lensDev.lftMotor.targetEncoder += uMotorIncrease;
+							}
+						else if (uMotorAction == 0x02) //逆时针
+							{
+							lensDev.lftMotor.targetEncoder -= uMotorIncrease;
+							}
+
+						VAL_LIMIT(lensDev.lftMotor.targetEncoder, MOTOR_ENCODER_MIN, MOTOR_ENCODER_MAX);
+						}
+					else if (uWhichMotor == 0x02) //右电机
+						{
+						if (uMotorAction == 0x01) //顺时针
+							{
+							lensDev.rhtMotor.targetEncoder += uMotorIncrease;
+							}
+						else if (uMotorAction == 0x02) //逆时针
+							{
+							lensDev.rhtMotor.targetEncoder -= uMotorIncrease;
+							}
+
+						VAL_LIMIT(lensDev.rhtMotor.targetEncoder, MOTOR_ENCODER_MIN, MOTOR_ENCODER_MAX);
+						}
+					else if (uWhichMotor == 0xFF) //所有电机
+						{
+						if (uMotorAction == 0x01) //顺时针
+							{
+							lensDev.lftMotor.targetEncoder += uMotorIncrease;
+							lensDev.rhtMotor.targetEncoder += uMotorIncrease;
+							}
+						else if (uMotorAction == 0x02) //逆时针
+							{
+							lensDev.lftMotor.targetEncoder -= uMotorIncrease;
+							lensDev.rhtMotor.targetEncoder -= uMotorIncrease;
+							}
+
+						VAL_LIMIT(lensDev.lftMotor.targetEncoder, MOTOR_ENCODER_MIN, MOTOR_ENCODER_MAX);
+						VAL_LIMIT(lensDev.rhtMotor.targetEncoder, MOTOR_ENCODER_MIN, MOTOR_ENCODER_MAX);
+						}
+					}
 				break;
 
 			case nReg_2DBracketCtl_W:
+					{
+					uint8_t 		uWhichMotor = (frm->regDataField[0] &0xFF000000) >> 24;
+					uint8_t 		uMotorAction = (frm->regDataField[0] &0x00FF0000) >> 16;
+
+					//步进电机单次动作增量(这里忽略协议数值，强制设置为500)
+					//uint16_t		uMotorIncrease = (frm->regDataField[0] &0x0000FFFF) >> 0;
+					uint16_t		uMotorIncrease = 500;
+
+					if (uWhichMotor == 0x01) //左电机
+						{
+						if (uMotorAction == 0x01) //顺时针
+							{
+							zsy_Bracket2DMove(1, +uMotorIncrease);
+							}
+						else if (uMotorAction == 0x02) //逆时针
+							{
+							zsy_Bracket2DMove(1, -uMotorIncrease);
+							}
+						}
+					else if (uWhichMotor == 0x02) //右电机
+						{
+						if (uMotorAction == 0x01) //顺时针
+							{
+							zsy_Bracket2DMove(2, +uMotorIncrease);
+							}
+						else if (uMotorAction == 0x02) //逆时针
+							{
+							zsy_Bracket2DMove(2, -uMotorIncrease);
+							}
+						}
+					}
 				break;
 
 			case nReg_OutVolume_R:
-				zsy_ModBusTxOneRegister(nReg_OutVolume_R, 0);
+				zsy_ModBusTxOneRegister(nReg_OutVolume_R, g_M62429Volume);
 				break;
 
 			case nReg_OutVolume_W:
+					{
+					uint8_t 		nSetVolume = frm->regDataField[0] &0x000000FF;
+
+					zsy_M62429Ctrl(&nSetVolume, 1);
+					}
 				break;
 
 			case nReg_VideoCtl_R:
@@ -446,7 +455,7 @@ void zsy_ModBusTxOneRegister(uint32_t regAddr, uint32_t regData)
 	buffer[2]			= 0;						//key.
 	buffer[3]			= regAddr | MODBUS_ADDR_APP; //regaddr,tx to APP.
 	buffer[4]			= regData;					//regData.
-	buffer[5]			= g_CRC32Calculate((uint8_t*)buffer, sizeof(uint32_t) * 5);
+	buffer[5]			= g_CRC32Calculate((uint8_t *) buffer, sizeof(uint32_t) * 5);
 
 	usart1_transmit((uint8_t *) buffer, sizeof(buffer));
 	osMutexRelease(uploadMutexHandle);

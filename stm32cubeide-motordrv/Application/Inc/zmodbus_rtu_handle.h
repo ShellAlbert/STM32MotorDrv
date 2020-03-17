@@ -132,6 +132,7 @@ typedef struct
 
 void zsy_ModBusInit(void);
 uint32_t zsy_ModBusRxCallBack(uint8_t * data, uint32_t len);
+void zsy_ModBusParseFIFOData();
 void zsy_ModBusParseFrame(ModBus_UnPack_Helper *frm);
 void zsy_ModBusTxOneRegister(uint32_t regAddr,uint32_t regData);
 //add by zhangshaoyan 2020/3/15 end.
@@ -177,7 +178,7 @@ typedef struct
 uint8_t pdh_verify_sum(uint8_t * p_msg, uint8_t len);
 uint8_t pdh_get_sum(uint8_t * p_msg, uint8_t len);
 
-void pdh_unpack_fifo_data(void);
+//void pdh_unpack_fifo_data(void);
 void pdh_data_handler(uint8_t * p_frame, uint8_t len);
 void pdh_data_upload(uint8_t * p_frame, uint8_t len);
 

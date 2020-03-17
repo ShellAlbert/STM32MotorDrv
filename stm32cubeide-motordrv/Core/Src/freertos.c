@@ -19,6 +19,8 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include <zdataprocess_task.h>
+#include <zlens_task.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
@@ -27,7 +29,6 @@
 /* USER CODE BEGIN Includes */     
 #include "drv_uart.h"
 /* USER CODE END Includes */
-#include "zlens_handle.h"
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
@@ -48,7 +49,7 @@
 
 /* USER CODE END Variables */
 osThreadId InitTaskHandle;
-osThreadId CommunicateTaskHandle;
+osThreadId DataProcessTaskHandle;
 osThreadId LensTaskHandle;
 osThreadId CmdTaskHandle;
 osTimerId once_timerHandle;
@@ -114,13 +115,13 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(InitTask, init_task, osPriorityNormal, 0, 128);
   InitTaskHandle = osThreadCreate(osThread(InitTask), NULL);
 
-  /* definition and creation of CommunicateTask */
-  osThreadDef(CommunicateTask, communicate_task, osPriorityRealtime, 0, 256);
-  CommunicateTaskHandle = osThreadCreate(osThread(CommunicateTask), NULL);
+  /* definition and creation of DataProcessTask */
+  osThreadDef(DataProcessTask, zsy_DataProcessTaskLoop, osPriorityRealtime, 0, 256);
+  DataProcessTaskHandle = osThreadCreate(osThread(DataProcessTask), NULL);
 
   /* definition and creation of LensTask */
   //osThreadDef(LensTask, lens_task, osPriorityRealtime, 0, 512);
-  osThreadDef(LensTask, zsy_LensThreadLoop, osPriorityRealtime, 0, 512);
+  osThreadDef(LensTask, zsy_LensTaskLoop, osPriorityRealtime, 0, 512);
   LensTaskHandle = osThreadCreate(osThread(LensTask), NULL);
 
   /* definition and creation of CmdTask */

@@ -34,7 +34,7 @@ protect_structure_t pprotect_structure;
 void system_cmd_task(void const * argument)
 {
 	osDelay(1000);
-	stop_distance_measure();
+	zsy_DistanceMeasureStop();
 
 	plens = lens_find("lens");
 	pbracket = bracket_find("bracket");
@@ -76,7 +76,7 @@ void system_cmd_task(void const * argument)
 				__HAL_TIM_SET_COMPARE(plens->motor[left_motor].pwm_tim_handle,plens->motor[left_motor].pwm_channel,1000);
 				__HAL_TIM_SET_COMPARE(plens->motor[right_motor].pwm_tim_handle,plens->motor[right_motor].pwm_channel,1000);
 				lens_set_motors_target_by_distance(manifold_cmd.distance,plens);
-				stop_distance_measure();
+				zsy_DistanceMeasureStop();
 			}
 		}
 
@@ -87,7 +87,7 @@ void system_cmd_task(void const * argument)
 
 static int8_t auto_focus(uint8_t *buff, uint16_t len)
 {
-	start_distance_measure();
+	zsy_DistanceMeasureStart();
 	return 0;
 }
 
@@ -193,7 +193,7 @@ static int8_t set_volume(uint8_t *buff, uint16_t len)
 {
 	if(buff[0] == SET_VOLUME)
 	{
-		m62429_control(&buff[1],1);
+		zsy_M62429Ctrl(&buff[1],1);
 	}
 	return 0;
 }

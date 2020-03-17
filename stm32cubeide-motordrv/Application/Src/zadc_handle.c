@@ -7,7 +7,7 @@
  * date: 2020/3/16
  */
 #include <zadc_handle.h>
-#include "communicate.h"
+#include <zdataprocess_task.h>
 #include "cmsis_os.h"
 #include "drv_uart.h"
 #include "package.h"
@@ -38,6 +38,8 @@ void zsy_ADCInit(void)
 	MX_ADC3_Init();
 
 	//start ADC1 with DMA,ADC1 releated channel sample data will be saved to g_ADC1DMABuffer.
+	//g_ADC1DMABuffer[]
+	//NTC0,BatteryVoltage0,RSSI0,NTC1,BatteryVoltage1,RSSI1, ......
 	//	HAL_ADCEx_Calibration_Start(&hadc1);
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t *) g_ADC1DMABuffer, ADC1_CHANNEL_NUM * ADC1_CHANNEL_SAMPLES);
 
@@ -46,13 +48,6 @@ void zsy_ADCInit(void)
 
 	//start ADC3 with IT(Interrupt).
 	HAL_ADC_Start(&hadc3);
-}
-
-
-void adh_adc_dma_data_handle(uint8_t * buf, uint32_t len)
-{
-	memcpy(g_ADC1DMABuffer, buf, len);
-	osSignalSet(CommunicateTaskHandle, RECV_ADC_DMA_SIGNAL);
 }
 
 
@@ -88,6 +83,9 @@ void zsy_ParseADC1DMAData(void)
 
 	//save battery voltage to global variable.
 	g_BatteryVoltage	= g_ADC1AverageValue[Battery_Voltage_ADC1_CH10];
+
+	//save RSSI to global variable.
+	g_RSSI				= g_ADC1AverageValue[RSSI1_ADC1_CH12];
 }
 
 

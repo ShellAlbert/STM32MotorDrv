@@ -26,11 +26,5 @@ typedef enum
 
 void zsy_ADCInit(void);
 void zsy_ParseADC1DMAData(void);
-void adh_adc_dma_data_handle(uint8_t *buf, uint32_t len);
-
-#include "adc.h"
-
-void get_adc_value(void);
-
 
 #endif /* INC_ZADC_HANDLE_H_ */

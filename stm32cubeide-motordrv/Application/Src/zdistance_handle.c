@@ -1,41 +1,45 @@
+
+
 /*
  * filename:zdistance_handle.c
  * versin:0.1.0
  * author:1811543668@qq.com
  * date: 2020/3/16
  */
-
 #include <stdlib.h>
+#include <zdataprocess_task.h>
 #include <zdistance_handle.h>
 #include "cmsis_os.h"
 #include "fifo.h"
 #include "drv_uart.h"
-#include "communicate.h"
 #include "system_cmd.h"
 #include "package.h"
 #include "zgblpara.h"
 
-#define CJ_FIFO_BUFLEN			128
+#define DISTANCE_RX_BUF_SIZE	128
+static uint8_t	g_DistanceRxBuffer[DISTANCE_RX_BUF_SIZE];
+static fifo_s_t g_DistanceRxFIFO;
 
-static unpack_ceju_data_t cj_unpack_obj;
-static fifo_s_t cj_rxdata_fifo;
-static uint8_t	cj_rxdata_buf[CJ_FIFO_BUFLEN];
+static unpack_ceju_data_t g_DisUnPackHelper;
 static hold_distance_t hold_distance;
+
+extern osThreadId DataProcessTaskHandle;
 
 
 void zsy_DistanceInit(void)
 {
-	fifo_s_init(&cj_rxdata_fifo, cj_rxdata_buf, CJ_FIFO_BUFLEN);
+	fifo_s_init(&g_DistanceRxFIFO, g_DistanceRxBuffer, DISTANCE_RX_BUF_SIZE);
 
 	/* initial judge data unpack object */
-	cj_unpack_obj.data_fifo = &cj_rxdata_fifo;
-	cj_unpack_obj.index = 0;
-	cj_unpack_obj.frame_len = 0;
-	cj_unpack_obj.unpack_step = STEP_CEJU_HRADER_FIRST;
+	g_DisUnPackHelper.data_fifo = &g_DistanceRxFIFO;
+	g_DisUnPackHelper.index = 0;
+	g_DisUnPackHelper.frame_len = 0;
+	g_DisUnPackHelper.unpack_step = STEP_CEJU_HRADER_FIRST;
 
 	//initial USART3.
 	MX_USART3_UART_Init();
 	usart3_manage_init();
+
 	//setup USART3 Rx CallBack.
 	usart_rx_callback_register(&usart3_manage_obj, zsy_DistanceRxCallBack);
 }
@@ -43,16 +47,16 @@ void zsy_DistanceInit(void)
 
 uint32_t zsy_DistanceRxCallBack(uint8_t * data, uint32_t len)
 {
-	//	data[len]='\0';
-	//	usart1_printf("len: %d Str: %s\n",len, data);
-	fifo_s_puts(&cj_rxdata_fifo, (char *) data, len);
-	osSignalSet(CommunicateTaskHandle, RECV_CEJU_SIGNAL);
+	//copy data to DistanceRxFIFO.
+	fifo_s_puts(&g_DistanceRxFIFO, (char *) data, len);
 
+	//send signal to DataProcessTask with NotificateValue.
+	osSignalSet(DataProcessTaskHandle, OS_SIGNAL_DISTANCE);
 	return 0;
 }
 
 
-void cj_data_handler(uint8_t * p_frame, uint8_t len)
+void zsy_DistanceParseFrame(uint8_t * p_frame, uint8_t len)
 {
 	uint16_t		dis = 0;
 
@@ -66,20 +70,14 @@ void cj_data_handler(uint8_t * p_frame, uint8_t len)
 
 	//	else
 	//	{
-	//		start_distance_measure();
+	//		zsy_DistanceMeasureStop();
 	//	}
 
-	/* upload the distance to android app */
-	upload_attr_t									// len-4去除D=和\r\n
-
-	upload_attr 		= pack_upload_data(MEASURE_DISTANCE, &p_frame[2], len - 4);
-	pdh_data_upload(upload_attr.pdata, upload_attr.len);
-
-	// save the distance
+	// save the distance,len-4去除D=和\r\n
 	memcpy(hold_distance.distance, &p_frame[2], len - 4);
 	hold_distance.len	= len - 4;
 
-	stop_distance_measure();
+	zsy_DistanceMeasureStop();
 
 	//add by zhangshaoyan 2020/3/16 begin.
 	//save distance value to global variable.
@@ -88,6 +86,9 @@ void cj_data_handler(uint8_t * p_frame, uint8_t len)
 	uint8_t 		uDecimal = floor((fDistance - uInteger) * 100);
 
 	g_LaserDistance 	= (uInteger << 8 | uDecimal);
+
+	//upload distance to APP.
+	zsy_ModBusTxOneRegister(nReg_Distance_R, g_LaserDistance);
 
 	//add by zhangshaoyan 2020/3/16 end.
 }
@@ -107,11 +108,11 @@ uint8_t 		distence_data_H = 0, distence_data_L = 0, point_flg = 0;
 uint16_t		distence_turn = 0;
 
 
-void cj_unpack_fifo_data(void)
+void zsy_DistanceParseFIFOData(void)
 {
 	uint8_t 		distence_bai = 0, distence_shi = 0, distence_ge = 0;
 	uint8_t 		byte = 0;
-	unpack_ceju_data_t * p_obj = &cj_unpack_obj;
+	unpack_ceju_data_t * p_obj = &g_DisUnPackHelper;
 
 	while (fifo_s_used(p_obj->data_fifo))
 		{
@@ -266,7 +267,7 @@ void cj_unpack_fifo_data(void)
 								p_obj->index		= 0;
 								distence_flag		= 0;
 								write_step_flag 	= 0;
-								cj_data_handler(p_obj->protocol_packet, p_obj->frame_len);
+								zsy_DistanceParseFrame(p_obj->protocol_packet, p_obj->frame_len);
 								}
 							else 
 								{
@@ -298,86 +299,21 @@ void cj_unpack_fifo_data(void)
 		}
 }
 
-
-/*void cj_unpack_fifo_data(void)
-{
-	uint8_t byte = 0;
-	unpack_ceju_data_t *p_obj = &cj_unpack_obj;
-
-	while ( fifo_s_used(p_obj->data_fifo) )
-	{
-		byte = fifo_s_get(p_obj->data_fifo);
-		switch(p_obj->unpack_step)
-		{
-			case STEP_CEJU_HRADER_FIRST:
-			{
-				if(byte == CEJU_HRADER_FIRST_C)
-				{
-					p_obj->unpack_step = STEP_CEJU_HEADER_SECOND;
-					p_obj->protocol_packet[p_obj->index++] = byte;
-				}
-				else
-				{
-					p_obj->index = 0;
-				}
-			}break;
-
-			case STEP_CEJU_HEADER_SECOND:
-			{
-				if(byte == CEJU_HRADER_SECOND_C)
-				{
-				p_obj->unpack_step = STEP_CEJU_END;
-				p_obj->protocol_packet[p_obj->index++] = byte;
-				}
-				else
-				{
-				p_obj->index = 0;
-				}
-			}break;
-
-			case STEP_CEJU_END:
-			{
-				p_obj->protocol_packet[p_obj->index++] = byte;
-				if (byte == CEJU_END_SECOND_C)
-				{
-					p_obj->frame_len = p_obj->index;
-					p_obj->unpack_step = STEP_CEJU_HRADER_FIRST;
-					p_obj->index = 0;
-					cj_data_handler(p_obj->protocol_packet, p_obj->frame_len);
-				}
-			}break;
-
-			default:
-			{
-				p_obj->unpack_step = STEP_CEJU_HRADER_FIRST;
-				p_obj->index = 0;
-			}break;
-		}
-	}
-}
-*/
-void start_distance_measure(void)
+void zsy_DistanceMeasureStart(void)
 {
 	//	uint8_t start[7] = {0x0D, 0x0A, 0x4F, 0x3D, 0x31, 0x0D, 0x0A};
-	uint8_t 		start[4] =
-		{
-		0x10, 0x83, 0x00, 0x7D
-		};
+	uint8_t start[4] ={0x10, 0x83, 0x00, 0x7D};
 
-	//新测距机单次测距
+	//single distance measure.
 	usart3_transmit(start, 4);
 }
 
-
-void stop_distance_measure(void)
+void zsy_DistanceMeasureStop(void)
 {
 	//	uint8_t stop[7] = {0x0D, 0x0A, 0x4F, 0x46, 0x46, 0x0D, 0x0A};
-	uint8_t 		stop[3] =
-		{
-		0x10, 0x84, 0x7C
-		};
+	uint8_t stop[3] ={0x10, 0x84, 0x7C};
 
-	//新测距机停止测距
+	//stop distance measure.
 	usart3_transmit(stop, 3);
 }
 

@@ -50,9 +50,9 @@ typedef struct
 void zsy_DistanceInit(void);
 uint32_t zsy_DistanceRxCallBack(uint8_t *data, uint32_t len);
 void ceju_upload_data_register(ceju_upload_handler_f upload_f);
-void cj_unpack_fifo_data(void);
-void start_distance_measure(void);
-void stop_distance_measure(void);
+void zsy_DistanceParseFIFOData(void);
+void zsy_DistanceMeasureStart(void);
+void zsy_DistanceMeasureStop(void);
 void cj_get_distance(void);
 
 #endif /* _ZDISTANCE_HANDLE_H__ */

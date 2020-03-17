@@ -27,15 +27,15 @@ uint16_t Volume_H[] = {	/*D2~D6 */
 							/*   -64db, -68db, -72db, -76db	*/
 								0x0010,0x0000};
 							/*   -80db, -84db	*/
+uint8_t g_M62429Volume=0;
 
 void zsy_M62429Init(void)
 {
-	uint8_t init_vol = 0;
-	m62429_control(&init_vol,1);
-	protocol_rcv_cmd_register(SET_VOLUME,m62429_control);
+	//mute at startup.
+	zsy_M62429Ctrl(&g_M62429Volume,1);
 }
 
-int8_t m62429_control(uint8_t *volume_data,uint16_t len)  //Vol_dat = 0->84: 0db -> -∞
+int8_t zsy_M62429Ctrl(uint8_t *volume_data,uint16_t len)  //Vol_dat = 0->84: 0db -> -∞
 {
 	uint16_t D_a=0;
 	uint8_t  Send_bit;

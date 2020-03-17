@@ -30,7 +30,7 @@
 #include <zadc_handle.h>
 #include <zmodbus_rtu_handle.h>
 #include <zdistance_handle.h>
-#include <zlens_handle.h>
+#include <zlens_task.h>
 #include "zgblpara.h"
 #include "cmsis_os.h"
 
@@ -162,15 +162,20 @@ int main(void)
 	//DMA1_Channel3_IRQHandler():HAL_DMA_IRQHandler(&hdma_usart3_rx)
 	zsy_DistanceInit();
 
-	//Left/Right DC Motor.
-	zsy_LensInit();
+
 	
 	//Output Volume Ctrl.
 	zsy_M62429Init();
 
 
-	lens_pid_register(&lensObj,"lens");
-	bracket_register(&bracketObj,"bracket");
+	//lens_pid_register(&lensObj,"lens");
+	//Left/Right DC Motor.
+	zsy_LensInit();
+	
+	//bracket_register(&bracketObj,"bracket");
+	//Left/Right & Up/Down Stepper Motor.
+	zsy_Bracket2DInit();
+	
 	protect_structure_register(&protectObj,"protect_structure");
 
 	/* USER CODE END 2 */
@@ -276,8 +281,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
 	/* USER CODE BEGIN Callback 0 */
 	if (htim->Instance == TIM4)
 		{
-		HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
+			zsy_Bracket2DStopLftRhtStepperMotor();
 		}
 
 	/* USER CODE END Callback 0 */
@@ -289,7 +293,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
 	/* USER CODE BEGIN Callback 1 */
 	if (htim->Instance == TIM8)
 		{
-		tim_rcr_uev_callback();
+		zsy_Bracket2DStopUpDownStepperMotor();
 		}
 
 	/* USER CODE END Callback 1 */
