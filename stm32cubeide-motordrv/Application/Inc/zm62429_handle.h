@@ -9,9 +9,6 @@
 #define DEVICES_M62429_H_
 #include "gpio.h"
 #include "zgblpara.h"
-#define SET_VOLUME 0x22
-
-#define CONTROL_D9D10	0x0060
 
 #define CLK_L HAL_GPIO_WritePin(M62429_CLK_GPIO_Port,M62429_CLK_Pin,GPIO_PIN_RESET)
 #define CLK_H HAL_GPIO_WritePin(M62429_CLK_GPIO_Port,M62429_CLK_Pin,GPIO_PIN_SET)
@@ -20,5 +17,5 @@
 
 extern uint8_t g_M62429Volume;
 void zsy_M62429Init(void);
-int8_t zsy_M62429Ctrl(uint8_t *volume_data,uint16_t len);
+void zsy_M62429Ctrl(uint8_t volume);
 #endif /* DEVICES_M62429_H_ */

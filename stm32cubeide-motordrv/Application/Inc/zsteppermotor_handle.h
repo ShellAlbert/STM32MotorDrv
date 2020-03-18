@@ -47,4 +47,5 @@ extern void zsy_Bracket2DInit();
 extern void zsy_Bracket2DMove(uint8_t whichMotor,uint32_t moveIncrease);
 extern void zsy_Bracket2DStopLftRhtStepperMotor();
 extern void zsy_Bracket2DStopUpDownStepperMotor();
+extern void zsy_Bracket2DLimitSwitchCallback(uint16_t gpioPin);
 #endif //_ZSTEPPERMOTOR_H__

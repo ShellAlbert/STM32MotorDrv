@@ -51,8 +51,9 @@
 osThreadId InitTaskHandle;
 osThreadId DataProcessTaskHandle;
 osThreadId LensTaskHandle;
-osThreadId CmdTaskHandle;
+
 osTimerId once_timerHandle;
+
 osMutexId uploadMutexHandle;
 osMutexId packMutexHandle;
 
@@ -62,10 +63,6 @@ osMutexId packMutexHandle;
 /* USER CODE END FunctionPrototypes */
 
 void init_task(void const * argument);
-extern void communicate_task(void const * argument);
-//extern void lens_task(void const * argument);
-
-extern void system_cmd_task(void const * argument);
 extern void stop_protect_motor(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -123,10 +120,6 @@ void MX_FREERTOS_Init(void) {
   //osThreadDef(LensTask, lens_task, osPriorityRealtime, 0, 512);
   osThreadDef(LensTask, zsy_LensTaskLoop, osPriorityRealtime, 0, 512);
   LensTaskHandle = osThreadCreate(osThread(LensTask), NULL);
-
-  /* definition and creation of CmdTask */
-  osThreadDef(CmdTask, system_cmd_task, osPriorityRealtime, 0, 512);
-  CmdTaskHandle = osThreadCreate(osThread(CmdTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

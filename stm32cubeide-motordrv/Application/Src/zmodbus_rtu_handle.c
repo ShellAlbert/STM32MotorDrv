@@ -11,11 +11,10 @@
 #include <zlens_task.h>
 #include <zmodbus_rtu_handle.h>
 #include <zsteppermotor_handle.h>
-#include <m62429.h>
+#include <zm62429_handle.h>
 #include "stdio.h"
 #include "drv_uart.h"
 #include "fifo.h"
-#include "cmd.h"
 #include "cmsis_os.h"
 #include "zgblpara.h"
 #if 1
@@ -67,19 +66,6 @@ uint32_t zsy_ModBusRxCallBack(uint8_t * data, uint32_t len)
 
 
 //add by zhangshaoyan 2020/3/15 end.
-void pdh_data_handler(uint8_t * p_frame, uint8_t len)
-{
-	static attr_pack_t pdata;
-	uint8_t 		data_len = p_frame[frame_length] -PROTOCOL_FIXED_LENGTH;
-
-	if (data_len > 0)
-		{
-		memcpy(pdata.pdata, &p_frame[attribute_id], data_len);
-		pdata.len			= data_len;
-		protocol_rcv_pack_handle((uint8_t *) &pdata, p_frame[attribute_id]);
-		}
-}
-
 
 //try to read one complete frame from ModBusRxFIFO byte by byte.
 void zsy_ModBusParseFIFOData(void)
@@ -390,6 +376,16 @@ void zsy_ModBusParseFrame(ModBus_UnPack_Helper * frm)
 							zsy_Bracket2DMove(2, -uMotorIncrease);
 							}
 						}
+					else if(uWhichMotor == 0xFF)//所有电机
+						{
+							if(uWhichMotor == 0xFF) //自动对焦
+							{
+								//1.enable AutoFocusFlag.
+								zsy_LensSetAutoFocusFlag(1);
+								//2.start distance measure.
+								zsy_DistanceMeasureStart();
+							}
+						}
 					}
 				break;
 
@@ -401,7 +397,8 @@ void zsy_ModBusParseFrame(ModBus_UnPack_Helper * frm)
 					{
 					uint8_t 		nSetVolume = frm->regDataField[0] &0x000000FF;
 
-					zsy_M62429Ctrl(&nSetVolume, 1);
+					zsy_M62429Ctrl(nSetVolume);
+					zsy_ModBusTxOneRegister(nReg_OutVolume_R, g_M62429Volume);
 					}
 				break;
 

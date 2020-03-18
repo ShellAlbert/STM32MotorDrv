@@ -178,9 +178,5 @@ typedef struct
 uint8_t pdh_verify_sum(uint8_t * p_msg, uint8_t len);
 uint8_t pdh_get_sum(uint8_t * p_msg, uint8_t len);
 
-//void pdh_unpack_fifo_data(void);
-void pdh_data_handler(uint8_t * p_frame, uint8_t len);
-void pdh_data_upload(uint8_t * p_frame, uint8_t len);
-
 #endif /* INC_ZMODBUS_RTU_HANDLE_H_ */
 

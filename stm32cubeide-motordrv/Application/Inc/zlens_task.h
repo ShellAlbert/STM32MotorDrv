@@ -60,7 +60,13 @@ extern float zsy_PIDCalculate(struct pidDevice *pidDev, float getV, float setV);
 extern void zsy_LftMotorGotPeakTorqueCurrentCallback(void);
 extern void zsy_RhtMotorGotPeakTorqueCurrentCallback(void);
 extern void zsy_LensThreadResume(void);
+extern void zsy_LensSetAutoFocusFlag(uint8_t bEnabled);
+extern void zsy_MotorAutoFocusWithDistance(uint32_t nDistance);
 //左右电机零点时的编码器值
 #define LFT_MOTOR_ZEROPOINT_ENCODER_VALUE	8000
 #define RHT_MOTOR_ZEROPOINT_ENCODER_VALUE	10000
+
+//map distance to encoder value table.
+extern uint16_t g_Table_Distance2Encoder_LftMotor[274][2];
+extern uint16_t g_Table_Distance2Encoder_RhtMotor[274][2];
 #endif //_ZLENS_HANDLE_H__

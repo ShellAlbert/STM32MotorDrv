@@ -12,8 +12,6 @@
 #include <zmodbus_rtu_handle.h>
 #include "cmsis_os.h"
 #include "drv_uart.h"
-#include "cmd.h"
-
 void zsy_DataProcessTaskLoop(void const * argument)
 {
 	while (1)

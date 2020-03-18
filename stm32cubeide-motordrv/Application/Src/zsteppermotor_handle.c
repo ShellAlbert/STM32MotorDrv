@@ -9,7 +9,15 @@ void zsy_Bracket2DInit()
 {
 
 	flash_pack_u	flash_pack;
-	flash_pack.data 	= find_used_entry();
+	flash_pack.data = find_used_entry();
+
+	//TIM2-CH1:Stepper Motor drive pluse for Left/Right direction move.
+	MX_TIM2_Init();
+	//TIM8-CH2:Stepper Motor drive pluse for Up/Down direction move.
+	MX_TIM8_Init();
+
+	//TIM4:used to help GeneralTimer without RCR(Repeat Counter Register) to stop PWM.
+	MX_TIM4_Init();
 
 	//left-right direction driving stepper motor.
 	g_Bracket2D.lftRhtStepper.pwmTIM = &htim2;
@@ -131,3 +139,47 @@ void zsy_Bracket2DStopUpDownStepperMotor()
 		HAL_GPIO_WritePin(g_Bracket2D.upDownStepper.sleepPort,g_Bracket2D.upDownStepper.sleepPin,GPIO_PIN_RESET);
 	}
 }
+void zsy_Bracket2DLimitSwitchCallback(uint16_t gpioPin)
+{
+		struct stepperDevice * pStepperMotor = NULL;
+
+		if(gpioPin==UD_Limit_Switch_Pin)
+		{
+			pStepperMotor		= &g_Bracket2D.upDownStepper;
+		}
+		else if(gpioPin==LR_Limit_Switch_Pin)
+		{
+			pStepperMotor		= &g_Bracket2D.lftRhtStepper;
+		}
+		
+		pStepperMotor->last_position=pStepperMotor->position;
+		//再次读取限位开关引脚电平,如果为0则表示光电限位开关真得被遮挡住了
+		if(!HAL_GPIO_ReadPin(pStepperMotor->limitPort,pStepperMotor->limitPin))
+		{
+			if(pStepperMotor->direction == Leftward)
+			{
+				//如果当前运动方向向左,则位置到达最左边了
+				pStepperMotor->position = Leftmost;
+			}
+			else if(pStepperMotor->direction == Rightward)
+			{
+				//如果当前运动方向向右，则位置到达最右边了
+				pStepperMotor->position = Rightmost;
+			}
+			//都到达最左/最右边了，当然要停止输出PWM脉冲了
+			HAL_TIM_PWM_Stop(pStepperMotor->pwmTIM, pStepperMotor->pwmCH);
+		}
+		else
+		{
+			//可能是误触发,位置保持在中间
+			pStepperMotor->position = Middle;
+		}
+	
+		//每次碰到限位，将2个步进电机的位置(Leftmost/Middle/Rightmost)保存在Flash中
+		writer_u writer;
+		writer.data[0] = g_Bracket2D.upDownStepper.position;
+		writer.data[1] = g_Bracket2D.lftRhtStepper.position;
+		write_word_to_flash(writer);
+
+}
+

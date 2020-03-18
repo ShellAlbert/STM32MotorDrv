@@ -47,12 +47,11 @@ typedef struct
 } unpack_ceju_data_t;
 
 
-void zsy_DistanceInit(void);
-uint32_t zsy_DistanceRxCallBack(uint8_t *data, uint32_t len);
-void ceju_upload_data_register(ceju_upload_handler_f upload_f);
-void zsy_DistanceParseFIFOData(void);
-void zsy_DistanceMeasureStart(void);
-void zsy_DistanceMeasureStop(void);
-void cj_get_distance(void);
+extern void zsy_DistanceInit(void);
+extern uint32_t zsy_DistanceRxCallBack(uint8_t *data, uint32_t len);
+extern void zsy_DistanceParseFIFOData(void);
+extern void zsy_DistanceMeasureStart(void);
+extern void zsy_DistanceMeasureStop(void);
+
 
 #endif /* _ZDISTANCE_HANDLE_H__ */

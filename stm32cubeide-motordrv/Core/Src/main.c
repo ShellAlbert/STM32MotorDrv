@@ -34,11 +34,10 @@
 #include "zgblpara.h"
 #include "cmsis_os.h"
 
-#include "lens_task.h"
 #include "drv_uart.h"
 #include "2d_bracket.h"
 #include "protect_structure.h"
-#include "m62429.h"
+#include "zm62429_handle.h"
 
 #include "dma.h"
 #include "tim.h"
@@ -56,9 +55,8 @@
 extern uint8_t	fiber_H[9];
 extern uint8_t	fiber_L[9];
 
+extern void Error_Handler(void);
 /* USER CODE END PTD */
-struct lens lensObj;
-struct bracket bracketObj;
 struct protect_structure protectObj;
 
 /* Private define ------------------------------------------------------------*/
@@ -86,9 +84,41 @@ void MX_FREERTOS_Init(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	zsy_Bracket2DLimitSwitchCallback(GPIO_Pin);
+}
 
-/* USER CODE END 0 */
+/**
+  * @brief	Period elapsed callback in non blocking mode
+  * @note	This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param	htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
+{
+	/* USER CODE BEGIN Callback 0 */
+	if (htim->Instance == TIM4)
+		{
+			zsy_Bracket2DStopLftRhtStepperMotor();
+		}
+
+	/* USER CODE END Callback 0 */
+	if (htim->Instance == TIM6)
+		{
+		HAL_IncTick();
+		}
+
+	/* USER CODE BEGIN Callback 1 */
+	if (htim->Instance == TIM8)
+		{
+		zsy_Bracket2DStopUpDownStepperMotor();
+		}
+
+	/* USER CODE END Callback 1 */
+}
 
 /**
   * @brief	The application entry point.
@@ -122,14 +152,6 @@ int main(void)
 	//DMA1-Channel4:USART1_TX.
 	//DMA1-Channel5:USART1_RX.
 	MX_DMA_Init();
-
-	//TIM2-CH1:Stepper Motor drive pluse for Left/Right direction move.
-	MX_TIM2_Init();
-	//TIM8-CH2:Stepper Motor drive pluse for Up/Down direction move.
-	MX_TIM8_Init();
-
-	//TIM4:used to help GeneralTimer without RCR(Repeat Counter Register) to stop PWM.
-	MX_TIM4_Init();
 	
 	//communicate with Laser Module.
 	MX_UART4_Init();
@@ -161,18 +183,13 @@ int main(void)
 	//DMA1_Channel2_IRQHandler():HAL_DMA_IRQHandler(&hdma_usart3_tx)
 	//DMA1_Channel3_IRQHandler():HAL_DMA_IRQHandler(&hdma_usart3_rx)
 	zsy_DistanceInit();
-
-
 	
 	//Output Volume Ctrl.
 	zsy_M62429Init();
 
-
-	//lens_pid_register(&lensObj,"lens");
 	//Left/Right DC Motor.
 	zsy_LensInit();
 	
-	//bracket_register(&bracketObj,"bracket");
 	//Left/Right & Up/Down Stepper Motor.
 	zsy_Bracket2DInit();
 	
@@ -259,45 +276,12 @@ void SystemClock_Config(void)
 }
 
 
-/* USER CODE BEGIN 4 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	update_stepper_positon(GPIO_Pin);
-}
+
 
 
 /* USER CODE END 4 */
 
-/**
-  * @brief	Period elapsed callback in non blocking mode
-  * @note	This function is called  when TIM6 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param	htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
-{
-	/* USER CODE BEGIN Callback 0 */
-	if (htim->Instance == TIM4)
-		{
-			zsy_Bracket2DStopLftRhtStepperMotor();
-		}
 
-	/* USER CODE END Callback 0 */
-	if (htim->Instance == TIM6)
-		{
-		HAL_IncTick();
-		}
-
-	/* USER CODE BEGIN Callback 1 */
-	if (htim->Instance == TIM8)
-		{
-		zsy_Bracket2DStopUpDownStepperMotor();
-		}
-
-	/* USER CODE END Callback 1 */
-}
 
 
 /**

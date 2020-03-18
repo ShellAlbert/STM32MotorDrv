@@ -9,10 +9,10 @@
 #include <stdlib.h>
 #include <zdataprocess_task.h>
 #include <zdistance_handle.h>
+#include <zlens_task.h>
 #include "cmsis_os.h"
 #include "fifo.h"
 #include "drv_uart.h"
-#include "system_cmd.h"
 #include "package.h"
 #include "zgblpara.h"
 
@@ -21,7 +21,6 @@ static uint8_t	g_DistanceRxBuffer[DISTANCE_RX_BUF_SIZE];
 static fifo_s_t g_DistanceRxFIFO;
 
 static unpack_ceju_data_t g_DisUnPackHelper;
-static hold_distance_t hold_distance;
 
 extern osThreadId DataProcessTaskHandle;
 
@@ -58,47 +57,40 @@ uint32_t zsy_DistanceRxCallBack(uint8_t * data, uint32_t len)
 
 void zsy_DistanceParseFrame(uint8_t * p_frame, uint8_t len)
 {
-	uint16_t		dis = 0;
-
-	/* When distance measure fail: D=-----m , don't change the value of distance*/
-	if ((p_frame[2] != '-') && (p_frame[6] != '-'))
+	//success: D=35.6m\r\n
+	//failed: D=-----m\r\n
+	if (0 != strcmp((void *) p_frame, "D=-----m\r\n"))
 		{
-		dis 				= (uint16_t) (atof((char *) (&p_frame[2])) + 0.5);
-		manifold_cmd.distance = dis;
-		osSignalSet(CmdTaskHandle, MANIFOLD2_DISTANCE_SIGNAL);
+		//if measured failed,keep the old distance value.
+		}
+	else 
+		{
+		g_LaserDistance= (uint32_t) (atof((char *) (&p_frame[2])) + 0.5);
 		}
 
-	//	else
-	//	{
-	//		zsy_DistanceMeasureStop();
-	//	}
 
-	// save the distance,len-4去除D=和\r\n
-	memcpy(hold_distance.distance, &p_frame[2], len - 4);
-	hold_distance.len	= len - 4;
 
 	zsy_DistanceMeasureStop();
 
-	//add by zhangshaoyan 2020/3/16 begin.
-	//save distance value to global variable.
-	float			fDistance = atof(hold_distance.distance);
-	uint32_t		uInteger = floor(fDistance);
-	uint8_t 		uDecimal = floor((fDistance - uInteger) * 100);
+	if (lensDev.autoFocusFlag) //自动对焦引发
+		{
+		lensDev.autoFocusFlag = 0;
+		zsy_MotorAutoFocusWithDistance(g_LaserDistance);
 
-	g_LaserDistance 	= (uInteger << 8 | uDecimal);
+		}
+	else //读测距寄存器引发
+		{
+		//combine float to int data type.
+		uint32_t		uInteger = floor(g_LaserDistance);
+		uint8_t 		uDecimal = floor((g_LaserDistance - uInteger) * 100);
 
-	//upload distance to APP.
-	zsy_ModBusTxOneRegister(nReg_Distance_R, g_LaserDistance);
+		uint32_t upDistance 	= (uInteger << 8 | uDecimal);
+
+		//upload distance to APP.
+		zsy_ModBusTxOneRegister(nReg_Distance_R, upDistance);
+		}
 
 	//add by zhangshaoyan 2020/3/16 end.
-}
-
-
-void cj_get_distance(void)
-{
-	upload_attr_t	upload_attr = pack_upload_data(MEASURE_DISTANCE, hold_distance.distance, hold_distance.len);
-
-	pdh_data_upload(upload_attr.pdata, upload_attr.len);
 }
 
 
@@ -299,19 +291,27 @@ void zsy_DistanceParseFIFOData(void)
 		}
 }
 
+
 void zsy_DistanceMeasureStart(void)
 {
 	//	uint8_t start[7] = {0x0D, 0x0A, 0x4F, 0x3D, 0x31, 0x0D, 0x0A};
-	uint8_t start[4] ={0x10, 0x83, 0x00, 0x7D};
+	uint8_t 		start[4] =
+		{
+		0x10, 0x83, 0x00, 0x7D
+		};
 
 	//single distance measure.
 	usart3_transmit(start, 4);
 }
 
+
 void zsy_DistanceMeasureStop(void)
 {
 	//	uint8_t stop[7] = {0x0D, 0x0A, 0x4F, 0x46, 0x46, 0x0D, 0x0A};
-	uint8_t stop[3] ={0x10, 0x84, 0x7C};
+	uint8_t 		stop[3] =
+		{
+		0x10, 0x84, 0x7C
+		};
 
 	//stop distance measure.
 	usart3_transmit(stop, 3);
