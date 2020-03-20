@@ -66,7 +66,6 @@ uint32_t zsy_ModBusRxCallBack(uint8_t * data, uint32_t len)
 
 
 //add by zhangshaoyan 2020/3/15 end.
-
 //try to read one complete frame from ModBusRxFIFO byte by byte.
 void zsy_ModBusParseFIFOData(void)
 {
@@ -338,6 +337,14 @@ void zsy_ModBusParseFrame(ModBus_UnPack_Helper * frm)
 							lensDev.lftMotor.targetEncoder -= uMotorIncrease;
 							lensDev.rhtMotor.targetEncoder -= uMotorIncrease;
 							}
+						else if (uMotorAction == 0xFF) //自动对焦
+							{
+							//1.enable AutoFocusFlag.
+							zsy_LensSetAutoFocusFlag(1);
+
+							//2.start distance measure.
+							zsy_DistanceMeasureStart();
+							}
 
 						VAL_LIMIT(lensDev.lftMotor.targetEncoder, MOTOR_ENCODER_MIN, MOTOR_ENCODER_MAX);
 						VAL_LIMIT(lensDev.rhtMotor.targetEncoder, MOTOR_ENCODER_MIN, MOTOR_ENCODER_MAX);
@@ -374,16 +381,6 @@ void zsy_ModBusParseFrame(ModBus_UnPack_Helper * frm)
 						else if (uMotorAction == 0x02) //逆时针
 							{
 							zsy_Bracket2DMove(2, -uMotorIncrease);
-							}
-						}
-					else if(uWhichMotor == 0xFF)//所有电机
-						{
-							if(uWhichMotor == 0xFF) //自动对焦
-							{
-								//1.enable AutoFocusFlag.
-								zsy_LensSetAutoFocusFlag(1);
-								//2.start distance measure.
-								zsy_DistanceMeasureStart();
 							}
 						}
 					}

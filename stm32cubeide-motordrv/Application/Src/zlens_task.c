@@ -78,6 +78,13 @@ void zsy_LensTaskLoop(void const * argument)
 		float			fMotorOut;
 		uint32_t		currentValue;
 
+		//编码器的当前值与目标值作PID
+		//占空比调节=CCR/ARR=x/1000,什么时间停止输出？
+		//当CCR=0时，占空比为0,输出一直为高电平或一直为低电平，即为停止PWM.
+		//说白了，
+		//编码器当前值与目标值作PID后，结果趋向于0
+		//就是CCR->0趋向于0，当CCR=0时,占空比CCR/ARR=0，此时PWM输出停止。
+		
 		//left motor.
 		currentValue		= __HAL_TIM_GET_COUNTER(&htim3);
 		fMotorOut			= zsy_PIDCalculate(&lensDev.pidLft, currentValue, lensDev.lftMotor.targetEncoder);
@@ -153,7 +160,8 @@ void zsy_LftMotorGotPeakTorqueCurrentCallback(void)
 			lensDev.lftMotor.nArrivedZPFlag = 1;
 			lensDev.lftMotor.goto_zp_flag = 0;
 
-			//到达机械零点后，再向后转500个单位，作为逻辑零点
+			//到达机械零点后，设置CCR=500.
+			//因为ARR=1000,当CCR=500时，1/(1000/500)*100%=50%,高低电平占空比为50%.
 			__HAL_TIM_SET_COMPARE(lensDev.lftMotor.pwm_tim_handle, lensDev.lftMotor.pwm_channel, 500);
 
 			//只有左右电机都到达机械零点了，说明逻辑零点都找到了，
@@ -182,7 +190,8 @@ void zsy_RhtMotorGotPeakTorqueCurrentCallback(void)
 			lensDev.rhtMotor.nArrivedZPFlag = 1;
 			lensDev.rhtMotor.goto_zp_flag = 0;
 
-			//到达机械零点后，再向后转500个单位，作为逻辑零点
+			//到达机械零点后，设置CCR=500.
+			//因为ARR=1000,当CCR=500时，1/(1000/500)*100%=50%,高低电平占空比为50%.
 			__HAL_TIM_SET_COMPARE(lensDev.rhtMotor.pwm_tim_handle, lensDev.rhtMotor.pwm_channel, 500);
 
 			//只有左右电机都到达零点了，说明逻辑零点都找到了，
