@@ -6,6 +6,15 @@ extern osThreadId LensTaskHandle;
 
 struct lensDevice lensDev;
 
+//直流电机通过按钮+/-一次控制的增量
+//产生pwm频率是固定的
+//调整的只是占空比
+//设当前编码器计数值为curVal
+//目标编码器计数值为dstVal
+//差值diffVal=dstVal-curVal
+//这个差值diffVal控制的就是占空比
+//控制的过程就是尽量使curVal向dstVal无限靠近，直至相等，此时差值为0
+//占空比为0，则表示IO输出为一恒定的电平（高或低），也就没有pwm输出了
 
 void zsy_LensInit()
 {
