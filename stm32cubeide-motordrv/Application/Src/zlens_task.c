@@ -15,7 +15,11 @@ struct lensDevice lensDev;
 //这个差值diffVal控制的就是占空比
 //控制的过程就是尽量使curVal向dstVal无限靠近，直至相等，此时差值为0
 //占空比为0，则表示IO输出为一恒定的电平（高或低），也就没有pwm输出了
-
+//占空比=CCR/ARR   (CaptureCompare Register/AutoReload Register,捕获比较寄存器/自动重装载寄存器)
+//占空比越大，表示单位时间内有效电平的时间越长，电机得到的电流就越多，速转就越快
+//当dstVal与curVal差距较大时，可以将占空比设置得较大一些，比如90%，
+//但要有范围限制，不能超过100%,也不能是0%，否则就恒定电平没有输出了。
+//当dstVal与curVal越来越接近的时候，趋向于0%，此时占空比为0%，pwm就没有输出了,电机也就停止转动了。
 void zsy_LensInit()
 {
 	//TIM1-CH1/CH1N: DC Motor1 PWM Out+/Out- (Left Lens).
